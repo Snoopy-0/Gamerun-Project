@@ -15,5 +15,9 @@ This project is designed to assist coaches and sports enthusiasts in analyzing s
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sports-video-ai-analysis.git
-   cd sports-video-ai-analysis
+   git clone https://github.com/yourusername/Gamerun-Project.git
+   cd Gamerun-Project
+
+## Requirements:
+   pip install opencv-python
+   pip install numpy
