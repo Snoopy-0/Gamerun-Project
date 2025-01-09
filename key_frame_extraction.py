@@ -55,8 +55,8 @@ def extract_key_frames_edge(video_path, output_dir, threshold=0.05):
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
 # Parameters
-video_path = "input_videos\compress-scoccer_analysis_2.mp4"  
+video_path = "input_videos\compress-scoccer_analysis_1.mp4"  
 output_dir = "value_frames"  
-threshold = 0.0305  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
+threshold = 0.035  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
 
 extract_key_frames_edge(video_path, output_dir, threshold)
