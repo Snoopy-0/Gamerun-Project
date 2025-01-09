@@ -5,13 +5,12 @@ import numpy as np
 # Compute edge map using Canny edge detector
 def compute_edge_map(frame):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_frame, threshold1=50, threshold2=150)
+    edges = cv2.Canny(gray_frame, threshold1=30, threshold2=100)
     return edges
 
 # Compare edge maps using normalized difference
 def compare_edge_maps(edges1, edges2):
     diff = cv2.absdiff(edges1, edges2)
-
     diff_percentage = np.sum(diff > 0) / edges1.size
     return diff_percentage
 
@@ -56,8 +55,8 @@ def extract_key_frames_edge(video_path, output_dir, threshold=0.05):
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
 # Parameters
-video_path = "input_videos\Fencing_Part_1_compress.mp4"  
+video_path = "input_videos\compress-scoccer_analysis_2.mp4"  
 output_dir = "value_frames"  
-threshold = 0.08  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
+threshold = 0.0305  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
 
 extract_key_frames_edge(video_path, output_dir, threshold)
