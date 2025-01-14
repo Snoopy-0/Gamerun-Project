@@ -22,7 +22,7 @@ def load_yolo_model():
 # Compute edge map using Canny edge detector
 def compute_edge_map(frame):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_frame, threshold1=30, threshold2=100)
+    edges = cv2.Canny(gray_frame, threshold1=40, threshold2=100)
     return edges
 
 # Compare edge maps using normalized difference
@@ -114,7 +114,7 @@ def extract_key_frames_with_detection(video_path, output_dir, net, class_labels,
 # Parameters
 video_path = "input_videos/compress-scoccer_analysis_1.mp4"
 output_dir = "value_frames"
-threshold = 0.03
+threshold = 0.035
 
 # Load YOLO model
 net, class_labels = load_yolo_model()
