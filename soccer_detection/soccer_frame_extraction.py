@@ -1,6 +1,22 @@
 import cv2
 import os
 import numpy as np
+from aws_s3_utility import download_from_s3
+
+#def analyze_video_from_s3(s3_key):
+#    local_video_path = 'temp_video.mp4'
+#    download_from_s3(s3_key, local_video_path)
+    
+    # Call frame_extract function here
+#    extract_key_frames(local_video_path)
+
+#def download_from_s3(s3_key, local_path):
+#    s3 = boto3.client('s3')
+#    try:
+#        s3.download_file(S3_BUCKET_NAME, s3_key, local_path)
+#        print(f"File {s3_key} downloaded to {local_path}")
+#    except NoCredentialsError:
+#        print("Credentials not available")
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
