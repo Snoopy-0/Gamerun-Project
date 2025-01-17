@@ -80,7 +80,7 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, thr
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
 # Parameters 
-local_video_path = "/Users/ganeshjathinreddymachireddy/Desktop/Fencing_Part_1.mp4"
+local_video_path = "XXXX.mp4"
 output_dir = "value_frames"
 bucket_name = "video-frame-storage-capstone-project"
 s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
