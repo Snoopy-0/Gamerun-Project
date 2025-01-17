@@ -1,5 +1,6 @@
 import cv2
 import os
+import boto3
 import numpy as np
 
 # Compute edge map using Canny edge detector
@@ -14,8 +15,28 @@ def compare_edge_maps(edges1, edges2):
     diff_percentage = np.sum(diff > 0) / edges1.size
     return diff_percentage
 
+# Function to download the video from S3
+def download_video_from_s3(bucket_name, s3_key, local_file_path):
+    s3 = boto3.client('s3')
+    try:
+        print(f"Downloading {s3_key} from bucket {bucket_name}...")
+        s3.download_file(bucket_name, s3_key, local_file_path)
+        print("Download complete!")
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        raise
+
+# Upload a file to an S3 bucket
+def upload_to_s3(local_file_path, bucket_name, s3_file_path):
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.upload_file(local_file_path, bucket_name, s3_file_path)
+        print(f"Uploaded {local_file_path} to s3://{bucket_name}/{s3_file_path}")
+    except Exception as e:
+        print(f"Error uploading {local_file_path} to S3: {e}")
+
 #main function to extract key frames based on edge differences
-def extract_key_frames_edge(video_path, output_dir, threshold=0.05):
+def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, threshold=0.05):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -43,9 +64,13 @@ def extract_key_frames_edge(video_path, output_dir, threshold=0.05):
         print(f"Frame {frame_count}: Edge difference = {difference:.5f}")  # Debugging
 
         if difference >= threshold:
-            frame_name = f"{output_dir}/frame_{frame_count:04d}.jpg"
-            cv2.imwrite(frame_name, curr_frame)
-            print(f"Saved {frame_name} with edge difference {difference:.2f}")
+            frame_name = f"frame_{frame_count:04d}.jpg"
+            local_path = os.path.join(output_dir, frame_name)
+            s3_path = f"{s3_folder}/{frame_name}"
+            
+            cv2.imwrite(local_path, curr_frame)
+            print(f"Saved {local_path} with edge difference {difference:.2f}")
+            upload_to_s3(local_path, bucket_name, s3_path)
             saved_count += 1
             prev_edges = curr_edges  # Update previous edges only when saving a frame
 
@@ -54,9 +79,15 @@ def extract_key_frames_edge(video_path, output_dir, threshold=0.05):
     cap.release()
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
-# Parameters
-video_path = "input_videos\compress-scoccer_analysis_1.mp4"  
-output_dir = "value_frames"  
+# Parameters 
+local_video_path = "/Users/ganeshjathinreddymachireddy/Desktop/Fencing_Part_1.mp4"
+output_dir = "value_frames"
+bucket_name = "video-frame-storage-capstone-project"
+s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
+s3_folder = "fencing-key-frames"  # S3 folder to save the frames  
 threshold = 0.035  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
 
-extract_key_frames_edge(video_path, output_dir, threshold)
+# Download the video from S3
+download_video_from_s3(bucket_name, s3_video_key, local_video_path)
+#Extract frames and Upload to S3
+extract_key_frames_to_s3(local_video_path, output_dir, bucket_name, s3_folder, threshold)
