@@ -20,7 +20,7 @@ This project is designed to assist coaches and sports enthusiasts in analyzing s
    cd Gamerun-Project
 
 ## Requirements:
-   pip install opencv-python
-   pip install numpy
-   pip install flask boto3
-   yolov4.cfg yolov4.weights & coco.names are necessary and can be downloaded from the YOLOv4 github
+   - pip install opencv-python
+   - pip install numpy
+   - pip install flask boto3
+   - yolov4.cfg yolov4.weights & coco.names are necessary and can be downloaded from the YOLOv4 github
