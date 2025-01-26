@@ -9,6 +9,7 @@ This project is designed to assist coaches and sports enthusiasts in analyzing s
 - **Key Frame Detection:** Automatically identifies the most significant frames in a video.
 - **Frame Extraction:** Extracts identified frames for further analysis.
 - **AI Integration:** Prepares frames for AI-driven insights, such as player performance analysis or tactical review.
+- **API Implimentation:** Allows for use with an AWS server. 
 
 ---
 
@@ -21,3 +22,5 @@ This project is designed to assist coaches and sports enthusiasts in analyzing s
 ## Requirements:
    pip install opencv-python
    pip install numpy
+   pip install flask boto3
+   yolov4.cfg yolov4.weights & coco.names are necessary and can be downloaded from the YOLOv4 github
