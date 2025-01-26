@@ -61,15 +61,12 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, thr
         curr_edges = compute_edge_map(curr_frame)
         difference = compare_edge_maps(prev_edges, curr_edges)
 
-        print(f"Frame {frame_count}: Edge difference = {difference:.5f}")  # Debugging
-
         if difference >= threshold:
             frame_name = f"frame_{frame_count:04d}.jpg"
             local_path = os.path.join(output_dir, frame_name)
             s3_path = f"{s3_folder}/{frame_name}"
             
             cv2.imwrite(local_path, curr_frame)
-            print(f"Saved {local_path} with edge difference {difference:.2f}")
             upload_to_s3(local_path, bucket_name, s3_path)
             saved_count += 1
             prev_edges = curr_edges  # Update previous edges only when saving a frame
@@ -79,15 +76,19 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, thr
     cap.release()
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
-# Parameters 
-local_video_path = "XXXX.mp4"
-output_dir = "value_frames"
-bucket_name = "video-frame-storage-capstone-project"
-s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
-s3_folder = "fencing-key-frames"  # S3 folder to save the frames  
-threshold = 0.035  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
+def main():
+    # Parameters 
+    local_video_path = "XXXX.mp4"
+    output_dir = "value_frames"
+    bucket_name = "frame-storage-capstone-project"
+    s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
+    s3_folder = "fencing-key-frames"  # S3 folder to save the frames  
+    threshold = 0.080  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
 
-# Download the video from S3
-download_video_from_s3(bucket_name, s3_video_key, local_video_path)
-#Extract frames and Upload to S3
-extract_key_frames_to_s3(local_video_path, output_dir, bucket_name, s3_folder, threshold)
+    # Download the video from S3
+    download_video_from_s3(bucket_name, s3_video_key, local_video_path)
+    #Extract frames and Upload to S3
+    extract_key_frames_to_s3(local_video_path, output_dir, bucket_name, s3_folder, threshold)
+
+if __name__ == '__main__':
+    main()

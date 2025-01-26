@@ -1,24 +1,27 @@
 import cv2
 import os
+import boto3
 import numpy as np
-from aws_s3_utility import download_from_s3
 
-#def analyze_video_from_s3(s3_key):
-#    local_video_path = 'temp_video.mp4'
-#    download_from_s3(s3_key, local_video_path)
-    
-    # Call frame_extract function here
-#    extract_key_frames(local_video_path)
+# Function to download the video from S3
+def download_video_from_s3(bucket_name, s3_key, local_file_path):
+    s3 = boto3.client('s3')
+    try:
+        print(f"Downloading {s3_key} from bucket {bucket_name}...")
+        s3.download_file(bucket_name, s3_key, local_file_path)
+        print("Download complete!")
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        raise
 
-#def download_from_s3(s3_key, local_path):
-#    s3 = boto3.client('s3')
-#    try:
-#        s3.download_file(S3_BUCKET_NAME, s3_key, local_path)
-#        print(f"File {s3_key} downloaded to {local_path}")
-#    except NoCredentialsError:
-#        print("Credentials not available")
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# Upload a file to an S3 bucket
+def upload_to_s3(local_file_path, bucket_name, s3_file_path):
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.upload_file(local_file_path, bucket_name, s3_file_path)
+        print(f"Uploaded {local_file_path} to s3://{bucket_name}/{s3_file_path}")
+    except Exception as e:
+        print(f"Error uploading {local_file_path} to S3: {e}")
 
 # Load YOLO model and class labels
 def load_yolo_model():
@@ -49,7 +52,6 @@ def compare_edge_maps(edges1, edges2):
 
 # Detect objects in a frame
 def detect_objects(frame, net, class_labels, confidence_threshold=0.5, nms_threshold=0.4):
-    #setting up frame to be used with YOLOv4
     blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
     net.setInput(blob)
     layer_names = net.getUnconnectedOutLayersNames()
@@ -58,13 +60,11 @@ def detect_objects(frame, net, class_labels, confidence_threshold=0.5, nms_thres
     h, w = frame.shape[:2]
     boxes, confidences, class_ids = [], [], []
 
-    #processes each detection in the output
     for output in outputs:
         for detection in output:
             scores = detection[5:]
             class_id = np.argmax(scores)
             confidence = scores[class_id]
-            #filtering the bounding boxes to ensure they stay within the threshold
             if confidence > confidence_threshold:
                 box = detection[0:4] * np.array([w, h, w, h])
                 (center_x, center_y, width, height) = box.astype("int")
@@ -85,8 +85,8 @@ def detect_objects(frame, net, class_labels, confidence_threshold=0.5, nms_thres
         })
     return result
 
-# Main function to extract key frames
-def extract_key_frames_with_detection(video_path, output_dir, net, class_labels, threshold=0.05):
+# Main function to extract key frames and upload to S3
+def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name, s3_folder, net, class_labels, threshold=0.05):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -116,24 +116,39 @@ def extract_key_frames_with_detection(video_path, output_dir, net, class_labels,
         players_detected = any(d["label"] == "person" for d in detections)
 
         if (soccer_ball_detected or players_detected) and difference >= threshold:
-            frame_name = f"{output_dir}/frame_{frame_count:04d}.jpg"
-            cv2.imwrite(frame_name, curr_frame)
-            print(f"Saved {frame_name} with edge difference {difference:.2f}")
+            frame_name = f"frame_{frame_count:04d}.jpg"
+            local_path = os.path.join(output_dir, frame_name)
+            s3_path = f"{s3_folder}/{frame_name}"
+
+            cv2.imwrite(local_path, curr_frame)
+            print(f"Saved {local_path} with edge difference {difference:.2f}")
+            upload_to_s3(local_path, bucket_name, s3_path)
             saved_count += 1
-            prev_edges = curr_edges  # Update previous edges only when saving a frame
+            prev_edges = curr_edges
 
         frame_count += 1
 
     cap.release()
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
-# Parameters
-video_path = "input_videos/compress-scoccer_analysis_1.mp4"
-output_dir = "value_frames"
-threshold = 0.035
+def main():
+    # Parameters
+    local_video_path = "Soccer_Part_1.mp4"
+    output_dir = "value_frames"
+    bucket_name = "frame-storage-capstone-project"
+    s3_video_key = "Soccer_Part_1.mp4"
+    s3_folder = "soccer-key-frames"
+    threshold = 0.035
 
-# Load YOLO model
-net, class_labels = load_yolo_model()
+    # Download the video from S3
+    download_video_from_s3(bucket_name, s3_video_key, local_video_path)
 
-# Extract key frames
-extract_key_frames_with_detection(video_path, output_dir, net, class_labels, threshold)
+    # Load YOLO model
+    net, class_labels = load_yolo_model()
+
+    # Extract frames and upload to S3
+    extract_key_frames_to_s3_with_detection(local_video_path, output_dir, bucket_name, s3_folder, net, class_labels, threshold)
+
+if __name__ == '__main__':
+    main()
+
