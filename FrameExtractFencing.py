@@ -82,8 +82,8 @@ def main():
     output_dir = "value_frames"
     bucket_name = "frame-storage-capstone-project"
     s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
-    s3_folder = "fencing-key-frames"  # S3 folder to save the frames  
-    threshold = 0.080  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
+    s3_folder = "fencing-videos"  # S3 folder to save the frames  
+    threshold = 0.085  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
 
     # Download the video from S3
     download_video_from_s3(bucket_name, s3_video_key, local_video_path)

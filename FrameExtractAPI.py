@@ -16,7 +16,7 @@ def process_fencing():
         s3_video_key = data['s3_video_key']
         output_dir = data['output_dir']
         s3_folder = data['s3_folder']
-        threshold = data.get('threshold', 0.035)
+        threshold = data.get('threshold', 0.085)
 
         # Local file path to download the video
         local_video_path = os.path.join(output_dir, os.path.basename(s3_video_key))
