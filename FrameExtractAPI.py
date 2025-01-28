@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 import os
 import threading
-from FrameExtractFencing import download_video_from_s3, extract_key_frames_to_s3
-from FrameExtractSoccer import download_video_from_s3 as download_soccer_video_from_s3
-from FrameExtractSoccer import load_yolo_model, extract_key_frames_to_s3_with_detection
+from frameExtractFencing import download_video_from_s3, extract_key_frames_to_s3
+from frameExtractSoccer import download_video_from_s3 as download_soccer_video_from_s3
+from frameExtractSoccer import load_yolo_model, extract_key_frames_to_s3_with_detection
 
 app = Flask(__name__)
 

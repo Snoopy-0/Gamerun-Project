@@ -6,7 +6,7 @@ import numpy as np
 # Compute edge map using Canny edge detector
 def compute_edge_map(frame):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_frame, threshold1=30, threshold2=100)
+    edges = cv2.Canny(gray_frame, threshold1=50, threshold2=150)
     return edges
 
 # Compare edge maps using normalized difference

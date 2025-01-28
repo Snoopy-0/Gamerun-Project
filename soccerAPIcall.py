@@ -13,7 +13,7 @@ data = {
     "bucket_name" : "frame-storage-capstone-project",
     "s3_video_key" : "Soccer_Part_1.mp4",
     "output_dir" : "value_frames_soccer",
-    "s3_folder" : f"{randNum}--{now.strftime('%Y-%m-%d_%H-%M-%S')}",
+    "s3_folder" : f"{randNum}--{now.strftime('%Y-%m-%d_%H:%M:%S')}",
     "threshold" : 0.035
 }
 
