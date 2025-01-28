@@ -9,7 +9,7 @@ This project is designed to assist coaches and sports enthusiasts in analyzing s
 - **Key Frame Detection:** Automatically identifies the most significant frames in a video.
 - **Frame Extraction:** Extracts identified frames for further analysis.
 - **AI Integration:** Prepares frames for AI-driven insights, such as player performance analysis or tactical review.
-- **API Implimentation:** Allows for use with an AWS server. 
+- **API Implimentation:** Allows for use with an AWS S3 buckets for cloud storage. 
 
 ---
 
