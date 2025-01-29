@@ -6,7 +6,7 @@ import numpy as np
 # Compute edge map using Canny edge detector
 def compute_edge_map(frame):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_frame, threshold1=50, threshold2=150)
+    edges = cv2.Canny(gray_frame, threshold1=80, threshold2=180)
     return edges
 
 # Compare edge maps using normalized difference
@@ -35,8 +35,14 @@ def upload_to_s3(local_file_path, bucket_name, s3_file_path):
     except Exception as e:
         print(f"Error uploading {local_file_path} to S3: {e}")
 
+def compute_Threshold(differences):
+    mean_diff = np.mean(differences)
+    std_diff = np.std(differences)
+    dynamic_threshold = mean_diff + (1.2 * std_diff) # Adjust the multiplier (e.g., 0.5) to tune sensitivity
+    return dynamic_threshold
+
 #main function to extract key frames based on edge differences
-def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, threshold=0.05):
+def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, sample_size = 50, update_interval = 100):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -51,6 +57,26 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, thr
         cap.release()
         return
 
+    prev_edges = compute_edge_map(prev_frame)
+
+    differences = []
+
+    print("Calculating initial dynamic threshold...")
+    for _ in range(sample_size):
+        ret, curr_frame = cap.read()
+        if not ret:
+            break
+
+        curr_edges = compute_edge_map(curr_frame)
+        difference = compare_edge_maps(prev_edges, curr_edges)
+        differences.append(difference)
+        prev_edges = curr_edges
+
+    threshold = compute_Threshold(differences)
+    print(f"Initial dynamic threshold: {threshold: .4f}")
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    ret, prev_frame = cap.read()
     prev_edges = compute_edge_map(prev_frame)
 
     while cap.isOpened():
@@ -83,12 +109,13 @@ def main():
     bucket_name = "frame-storage-capstone-project"
     s3_video_key = "Fencing_Part_1.mp4"  # Replace with GameRun S3 bucket name
     s3_folder = "fencing-videos"  # S3 folder to save the frames  
-    threshold = 0.085  # Set a percentage threshold for edge differences (higher = less saved frames/ lower = more saved frames)
+    sample_size = 50
+    update_interval = 100
 
     # Download the video from S3
     download_video_from_s3(bucket_name, s3_video_key, local_video_path)
     #Extract frames and Upload to S3
-    extract_key_frames_to_s3(local_video_path, output_dir, bucket_name, s3_folder, threshold)
+    extract_key_frames_to_s3(local_video_path, output_dir, bucket_name, s3_folder, sample_size, update_interval)
 
 if __name__ == '__main__':
     main()
