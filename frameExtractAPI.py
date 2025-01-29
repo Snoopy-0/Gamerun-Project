@@ -16,7 +16,6 @@ def process_fencing():
         s3_video_key = data['s3_video_key']
         output_dir = data['output_dir']
         s3_folder = data['s3_folder']
-        threshold = data.get('threshold', 0.085)
 
         # Local file path to download the video
         local_video_path = os.path.join(output_dir, os.path.basename(s3_video_key))
@@ -28,7 +27,7 @@ def process_fencing():
         download_video_from_s3(bucket_name, s3_video_key, local_video_path)
 
         # Run frame extraction
-        threading.Thread(target=extract_key_frames_to_s3, args=(local_video_path, output_dir, bucket_name, s3_folder, threshold)).start()
+        threading.Thread(target=extract_key_frames_to_s3, args=(local_video_path, output_dir, bucket_name, s3_folder)).start()
 
         return jsonify({"message": "Fencing video processing started."}), 200
     except Exception as e:
@@ -43,7 +42,6 @@ def process_soccer():
         s3_video_key = data['s3_video_key']
         output_dir = data['output_dir']
         s3_folder = data['s3_folder']
-        threshold = data.get('threshold', 0.035)
 
         # Local file path to download the video
         local_video_path = os.path.join(output_dir, os.path.basename(s3_video_key))
@@ -58,7 +56,7 @@ def process_soccer():
         net, class_labels = load_yolo_model()
 
         # Run frame extraction with object detection
-        threading.Thread(target=extract_key_frames_to_s3_with_detection, args=(local_video_path, output_dir, bucket_name, s3_folder, net, class_labels, threshold)).start()
+        threading.Thread(target=extract_key_frames_to_s3_with_detection, args=(local_video_path, output_dir, bucket_name, s3_folder, net, class_labels)).start()
 
         return jsonify({"message": "Soccer video processing started."}), 200
     except Exception as e:

@@ -35,6 +35,7 @@ def upload_to_s3(local_file_path, bucket_name, s3_file_path):
     except Exception as e:
         print(f"Error uploading {local_file_path} to S3: {e}")
 
+#Logic for creating a dynamic threshold value based on video 
 def compute_Threshold(differences):
     mean_diff = np.mean(differences)
     std_diff = np.std(differences)
@@ -59,9 +60,12 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, sam
 
     prev_edges = compute_edge_map(prev_frame)
 
+    #dynamic threshold gets created here
     differences = []
 
     print("Calculating initial dynamic threshold...")
+
+    #gets sample_size number of frames to calculate first dynamic threshold
     for _ in range(sample_size):
         ret, curr_frame = cap.read()
         if not ret:
@@ -72,6 +76,7 @@ def extract_key_frames_to_s3(video_path, output_dir, bucket_name, s3_folder, sam
         differences.append(difference)
         prev_edges = curr_edges
 
+    #makes the threshold the computed threshold, prints the threshold, then goes back to start of video.
     threshold = compute_Threshold(differences)
     print(f"Initial dynamic threshold: {threshold: .4f}")
 

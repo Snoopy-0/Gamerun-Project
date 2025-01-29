@@ -14,7 +14,6 @@ data = {
     "s3_video_key": "Fencing_Part_1.mp4",
     "output_dir": "value_frames",
     "s3_folder" : f"{randNum}--{now.strftime('%Y-%m-%d_%H:%M:%S')}",
-    "threshold" : 0.085
 }
 
 response = requests.post(url, json=data)

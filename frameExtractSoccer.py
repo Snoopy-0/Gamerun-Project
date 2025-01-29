@@ -50,6 +50,13 @@ def compare_edge_maps(edges1, edges2):
     diff_percentage = np.sum(diff > 0) / edges1.size
     return diff_percentage
 
+#Logic for creating a dynamic threshold value based on video 
+def compute_threshold(differences):
+    mean_diff = np.mean(differences)
+    std_diff = np.std(differences)
+    dynamic_threshold = mean_diff + ( .9 * std_diff) # Adjust the multiplier (e.g., 0.5) to tune sensitivity
+    return dynamic_threshold
+
 # Detect objects in a frame
 def detect_objects(frame, net, class_labels, confidence_threshold=0.5, nms_threshold=0.4):
     blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
@@ -86,7 +93,7 @@ def detect_objects(frame, net, class_labels, confidence_threshold=0.5, nms_thres
     return result
 
 # Main function to extract key frames and upload to S3
-def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name, s3_folder, net, class_labels, threshold=0.05):
+def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name, s3_folder, net, class_labels, sample_size = 50, update_interval = 100):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -95,6 +102,9 @@ def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name,
 
     frame_count = 0
     saved_count = 0
+    differences = []
+
+ 
     ret, prev_frame = cap.read()
     if not ret:
         print("Error: Unable to read the first frame.")
@@ -102,6 +112,26 @@ def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name,
         return
 
     prev_edges = compute_edge_map(prev_frame)
+
+#determine dynamic threshold based on first 50 frames
+    print("calculating initial threshold...")
+    for _ in range(sample_size):
+        ret, curr_frame = cap.read()
+        if not ret:
+            break
+
+        curr_edges = compute_edge_map(curr_frame)
+        difference = compare_edge_maps(prev_edges, curr_edges)
+        differences.append(difference)
+    
+    threshold = compute_threshold(differences)
+    print (f"initial dynamic threshold {threshold: .4f}")
+
+#reset frames to 0 before performing actual frame extraction
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    ret, prev_frame = cap.read()
+    prev_edges = compute_edge_map(prev_frame)
+    differences = []
 
     while cap.isOpened():
         ret, curr_frame = cap.read()
@@ -121,10 +151,14 @@ def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name,
             s3_path = f"{s3_folder}/{frame_name}"
 
             cv2.imwrite(local_path, curr_frame)
-            print(f"Saved {local_path} with edge difference {difference:.2f}")
             upload_to_s3(local_path, bucket_name, s3_path)
             saved_count += 1
             prev_edges = curr_edges
+
+        if frame_count % update_interval == 0 and len(differences) > 10:
+            threshold = compute_threshold(differences)
+            print(f"Updated threshold at frame {frame_count}: {threshold: .4f}")
+            differences = []
 
         frame_count += 1
 
@@ -132,13 +166,15 @@ def extract_key_frames_to_s3_with_detection(video_path, output_dir, bucket_name,
     print(f"Processing complete. {saved_count} frames saved to {output_dir}.")
 
 def main():
+    
     # Parameters
     local_video_path = "Soccer_Part_1.mp4"
     output_dir = "value_frames"
     bucket_name = "frame-storage-capstone-project"
     s3_video_key = "Soccer_Part_1.mp4"
     s3_folder = "soccer-key-frames"
-    threshold = 0.035
+    sample_size = 50
+    update_interval = 100
 
     # Download the video from S3
     download_video_from_s3(bucket_name, s3_video_key, local_video_path)
@@ -147,8 +183,7 @@ def main():
     net, class_labels = load_yolo_model()
 
     # Extract frames and upload to S3
-    extract_key_frames_to_s3_with_detection(local_video_path, output_dir, bucket_name, s3_folder, net, class_labels, threshold)
+    extract_key_frames_to_s3_with_detection(local_video_path, output_dir, bucket_name, s3_folder, net, class_labels, sample_size, update_interval)
 
 if __name__ == '__main__':
     main()
-
