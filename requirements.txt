@@ -1,4 +1,6 @@
-opencv-python
-numpy
-flask 
+Flask
 boto3
+opencv-python-headless
+numpy
+requests
+gunicorn

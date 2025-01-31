@@ -5,10 +5,10 @@ from frameExtractFencing import download_video_from_s3, extract_key_frames_to_s3
 from frameExtractSoccer import download_video_from_s3 as download_soccer_video_from_s3
 from frameExtractSoccer import load_yolo_model, extract_key_frames_to_s3_with_detection
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 # API to process fencing videos
-@app.route('/fencing', methods=['POST'])
+@application.route('/fencing', methods=['POST'])
 def process_fencing():
     try:
         data = request.json
@@ -34,7 +34,7 @@ def process_fencing():
         return jsonify({"error": str(e)}), 500
 
 # API to process soccer videos
-@app.route('/soccer', methods=['POST'])
+@application.route('/soccer', methods=['POST'])
 def process_soccer():
     try:
         data = request.json
@@ -63,4 +63,4 @@ def process_soccer():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    application.run(host='0.0.0.0', port=5000)
