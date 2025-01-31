@@ -39,7 +39,7 @@ def upload_to_s3(local_file_path, bucket_name, s3_file_path):
 def compute_Threshold(differences):
     mean_diff = np.mean(differences)
     std_diff = np.std(differences)
-    dynamic_threshold = mean_diff + (1.2 * std_diff) # Adjust the multiplier (e.g., 0.5) to tune sensitivity
+    dynamic_threshold = mean_diff + (1.2 * std_diff) # Adjust the multiplier (e.g., 1.2) to tune sensitivity
     return dynamic_threshold
 
 #main function to extract key frames based on edge differences
